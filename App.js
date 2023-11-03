@@ -1,56 +1,141 @@
-import { useEffect, useState, createContext } from "react";
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+/*****************************************************************************/
+/* Meta React Native Specialization Capstone Project
+/*****************************************************************************/
+
+import { useEffect, useState, useReducer } from "react";
+import { Image, StyleSheet}                from "react-native";
+import { NavigationContainer }             from '@react-navigation/native';
+import { createNativeStackNavigator }      from '@react-navigation/native-stack';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import Onboarding   from './screens/Onboarding';
-import Profile      from './screens/Profile';
-import SplashScreen from './screens/SplashScreen';
+import { ProfileContext }    from './context/ProfileContext';
 
-import { OnboardingContext } from './context/OboardingContext';
+import Onboarding            from './screens/Onboarding';
+import Profile               from './screens/Profile';
+import SplashScreen          from './screens/SplashScreen';
+
+import ProfileImage          from './components/ProfileImage';
+import { blankProfile } from './utils';
+
+/*****************************************************************************/
 
 const Stack = createNativeStackNavigator();
 
+/*****************************************************************************/
+
+const reduceProfileState = (state, action) => {
+  const newState = {...state};
+  return action.data.reduce((a, v) => {
+    if (v[1] !== null) {
+      console.log('H: ', v);
+      a[v[0]] = v[1];
+    }
+    return a;
+  }, newState);
+};
+
+/*****************************************************************************/
+
 export default function App() {
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading,             setIsLoading]             = useState(true);
   const [isOnboardingCompleted, setIsOnboardingCompleted] = useState(false);
-  const [firstname, setFirstname] = useState('');
+  const [profileState,          dispatchProfileChange]    = useReducer(reduceProfileState, blankProfile);
 
   useEffect(() => {
     (async () => {
       try {
-        const iobc = await AsyncStorage.getItem('@littlelemon_IsOnboardingCompleted');
-        setIsOnboardingCompleted(iobc);
-      } catch(e) {
+        const iobc = await AsyncStorage.getItem('IsOnboardingCompleted');
+        if (iobc && (typeof(iobc) === 'boolean')) {
+          setIsOnboardingCompleted(iobc);
+        }
+
+        const data = await AsyncStorage.multiGet(Object.keys(profileState));
+        const profileData = data.map((v) => {
+          v[1] = JSON.parse(v[1]);
+          return v;
+        });
+
+        dispatchProfileChange({data: profileData});
+      }
+      catch(e) {
         // read error
       }
-
-      try {
-        const fn = await AsyncStorage.getItem('@littlelemon_firstname');
-        setFirstname(fn);
-      } catch(e) {
-        // read error
+      finally {
+        setIsLoading(false);
       }
-
     })();
-
-    setIsLoading(false);
   }, []);
 
+  if (isLoading) {
+    return (<SplashScreen />);
+  }
+
+  //headerRight={() => (
+  //    <ProfileImage
+  //      imageStyle={localStyles.profileImage}
+  //      imageTextStyle={localStyles.profileImageText}
+  //    />
+  //)}
+
   return (
-    <OnboardingContext.Provider value={setIsOnboardingCompleted} >
+    <ProfileContext.Provider
+      value={{
+        profileState
+      , dispatchProfileChange
+      , setIsOnboardingCompleted
+      }}
+    >
       <NavigationContainer>
         <Stack.Navigator>
-          { (isLoading)
-          ? (<Stack.Screen name="Splash" component={SplashScreen} />)
-          : ((isOnboardingCompleted)
-            ? (<Stack.Screen name="Profile" component={Profile} />)
-            : (<Stack.Screen name='Onboarding' component={Onboarding} />)
-            )
+          {(isOnboardingCompleted)
+          ? <Stack.Screen
+              name="Profile"
+              component={Profile}
+              headerTitle={() => (
+                <Image
+                  style={localStyles.logo}
+                  source={require('./assets/Logo.png')}
+                  accessible={true}
+                  accessibilityLabel={'Little Lemon Logo'}
+                />
+              )}
+            />
+          : <Stack.Screen
+              name='Onboarding'
+              component={Onboarding}
+              headerTitle={
+                <Image
+                  style={localStyles.logo}
+                  source={require('./assets/Logo.png')}
+                  accessible={true}
+                  accessibilityLabel={'Little Lemon Logo'}
+                />
+              }
+            />
           }
         </Stack.Navigator>
       </NavigationContainer>
-    </OnboardingContext.Provider>
+    </ProfileContext.Provider>
   );
 };
+
+/*****************************************************************************/
+
+const localStyles = StyleSheet.create({
+  profileImage: {
+    width:    75
+  , height:   75
+  }
+, profileImageText: {
+    fontSize: 24
+  }
+, logo: {
+    width:      '60%'
+  , height:     100
+  , resizeMode: 'contain'
+  }
+});
+
+/*****************************************************************************/
+/*****************************************************************************/

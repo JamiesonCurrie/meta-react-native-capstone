@@ -1,6 +1,10 @@
+/*****************************************************************************/
+
 import { StyleSheet} from "react-native";
 
-const themeColours = {
+/*****************************************************************************/
+
+export const themeColours = {
   p1: '#495E57'
 , p2: '#F4CE14'
 , s1: '#EE9972'
@@ -8,6 +12,8 @@ const themeColours = {
 , s3: '#EEEEEE'
 , s4: '#333333'
 };
+
+/*****************************************************************************/
 
 export const styles = StyleSheet.create({
   container:  {
@@ -18,43 +24,36 @@ export const styles = StyleSheet.create({
   , fontSize:       24
   , marginVertical: 8
   , color:         themeColours.p1
-  , textAlign:     'center'
-  //, flex:          0.5
   }
 , labelText: {
-    padding:        20
-  , fontSize:       24
-  , marginVertical: 8
+    paddingHorizontal: 20
+  , paddingTop:        20
+  , paddingBottom:     8
+  , fontSize:          16
   , color:          themeColours.p1
-  , textAlign:     'center'
-  //, flex:          0.5
   }
 , warningText: {
-    padding:        20
-  , fontSize:       24
-  , marginVertical: 8
-  , color:         themeColours.s1
-  , textAlign:     'center'
-  //, flex:          0.5
+    textAlign: 'center'
+  , fontSize:   14
+  , color:      themeColours.s1
   }
 , inputText:  {
-    padding:          20
-  , paddingStart:     20
+    textAlign:        'left'
+  , padding:          20
+  , marginHorizontal: 15
   , fontSize:         16
   , color:            themeColours.s4
-  , textAlign:        'left'
   , borderColor:      themeColours.p1
   , borderWidth:      5
   , borderRadius:     25
   }
 , button: {
-    fontSize:        22
-  , padding:         10
+    padding:         20
   , marginVertical:  25
-  , margin:          100
+  , marginHorizontal: 5
   , borderWidth:     2
-  , borderRadius:    50
-}
+  , borderRadius:    16
+  }
 , buttonEnabled: {
     backgroundColor: themeColours.s2
   , borderColor:     themeColours.s1
@@ -64,10 +63,18 @@ export const styles = StyleSheet.create({
     backgroundColor: themeColours.s3
   , borderColor:     themeColours.s4
   , color:           themeColours.s4
-}
+  }
 , buttonText: {
-    fontSize:  24
-  //, color:     'white'
+    fontSize:  18
   , textAlign: 'center'
   }
+, profileImage: {
+    resizeMode: 'contain'
+  }
+, textImage: {
+    backgroundColor: themeColours.p1
+  }
 });
+
+/*****************************************************************************/
+/*****************************************************************************/

@@ -1,54 +1,58 @@
-import { useEffect, useState, useContext } from "react";
+import { useEffect, useState, useContext }              from "react";
 import { Text, View, TextInput, Pressable, StyleSheet } from "react-native";
+
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import Header from '../components/Header';
-import { OnboardingContext } from '../context/OboardingContext';
+import { validateEmail, validateName } from '../utils';
+import { styles }                      from '../styles/styles';
+import { ProfileContext }              from '../context/ProfileContext';
 
-import { styles } from '../styles/styles';
-import { validateEmail, validateFirstname } from '../utils';
-
-const doneOnboarding = async (name, email) => {
-  try {
-    await AsyncStorage.setItem('littlelemon_firstname',             JSON.stringify(name));
-    await AsyncStorage.setItem('littlelemon_email',                 JSON.stringify(email));
-    await AsyncStorage.setItem('littlelemon_IsOnboardingCompleted', JSON.stringify(true));
-  } catch(e) {
-    // save error
-  }
-};
+/*****************************************************************************/
 
 const Onboarding = () => {
-  const [firstname,      setFirstname]      = useState('');
+  const {
+    profileState
+  , dispatchProfileChange
+  , setIsOnboardingCompleted
+  } = useContext(ProfileContext);
+
   const [validFirstname, setValidFirstname] = useState(true);
-  const [email,          setEmail]          = useState('');
   const [validEmail,     setValidEmail]     = useState(true);
   const [disabled,       setDisabled]       = useState(true);
 
-  const setOnboarding = useContext(OnboardingContext);
-
   const onNext = async () => {
+    const entries = [
+      ['firstname', profileState['firstname']]
+    , ['email',     profileState['email']    ]
+    ];
+
     try {
-      await doneOnboarding(firstname, email);
+      await AsyncStorage.multiSet(
+        entries.concat(['IsOnboardingCompleted', 'true'])
+      );
     }
-    catch (e) {
-      //save error
+    catch(e) {
+      Alert.alert(
+        'Storage Error!'
+      , 'There was an error saving to your device. ' + JSON.stringify(e, ' ')
+      , [{text: 'OK'}]
+      );
     }
     finally {
-      setOnboarding(true);
+      setIsOnboardingCompleted(true);
     }
   };
 
   useEffect(() => {
-    setValidFirstname(validateFirstname(firstname));
-  }, [firstname]);
+    setValidFirstname(validateName(profileState['firstname']));
+  }, [profileState['firstname']]);
 
   useEffect(() => {
-    setValidEmail(validateEmail(email));
-  }, [email]);
+    setValidEmail(validateEmail(profileState['email']));
+  }, [profileState['email']]);
 
   useEffect(() => {
-    setDisabled(!validEmail || !validFirstname);
+    setDisabled((!validEmail || !validFirstname));
   }, [validFirstname, validEmail]);
 
   useEffect(() => {
@@ -59,16 +63,15 @@ const Onboarding = () => {
 
   return (
     <View style={styles.container}>
-      <Header />
       <View style={localStyles.container}>
-        <Text style={styles.leadText}>Let us get to know you</Text>
+        <Text style={[styles.leadText, localStyles.leadText]}>Let us get to know you</Text>
         <Text style={styles.labelText}>First name</Text>
         <TextInput
           style={styles.inputText}
           id={'firstname'}
           placeholder='Your Name'
-          value={firstname}
-          onChangeText={setFirstname}
+          value={profileState['firstname']}
+          onChangeText={(text) => dispatchProfileChange({ data: [['firstname', text]] })}
         />
         {!validFirstname &&
           <Text style={styles.warningText}>Firstname is required and must be A-z</Text>
@@ -78,8 +81,9 @@ const Onboarding = () => {
           style={styles.inputText}
           id={'email'}
           placeholder='Type your email'
-          value={email}
-          onChangeText={setEmail}
+          value={profileState['email']}
+          onChangeText={(text) => dispatchProfileChange({ data: [['email', text]] })}
+          keyboardType='email-address'
         />
         {!validEmail &&
           <Text style={styles.warningText}>must be a valid email address</Text>
@@ -96,11 +100,21 @@ const Onboarding = () => {
   );
 };
 
+/*****************************************************************************/
+
 const localStyles = StyleSheet.create({
   container:  {
     flex: 2
   , justifyContent: 'flex-end'
   }
+, leadText: {
+    textAlign: 'center'
+  }
 });
 
+/*****************************************************************************/
+
 export default Onboarding;
+
+/*****************************************************************************/
+/*****************************************************************************/
