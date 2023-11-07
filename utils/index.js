@@ -18,9 +18,9 @@ export const validatePhoneNumber = (phoneNumber) => (
 /*****************************************************************************/
 
 export const getInitials = (first, last) => {
-  const fi = first[0] || '';
-  const li = last[0]  || '';
-  return fi.toUpperCase() + li.toUpperCase();
+  const fi = (first) ? first[0].toUpperCase() : '';
+  const li = (last)  ? last[0].toUpperCase()  : '';
+  return fi + li;
 };
 
 /*****************************************************************************/

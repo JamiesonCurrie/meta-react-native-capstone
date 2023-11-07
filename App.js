@@ -3,20 +3,23 @@
 /*****************************************************************************/
 
 import { useEffect, useState, useReducer } from "react";
-import { Image, StyleSheet}                from "react-native";
-import { NavigationContainer }             from '@react-navigation/native';
-import { createNativeStackNavigator }      from '@react-navigation/native-stack';
+import { Image, Pressable, StyleSheet}     from "react-native";
+
+import { NavigationContainer }        from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import { ProfileContext }    from './context/ProfileContext';
+import { blankProfile }   from './utils';
 
-import Onboarding            from './screens/Onboarding';
-import Profile               from './screens/Profile';
-import SplashScreen          from './screens/SplashScreen';
+import { ProfileContext } from './context/ProfileContext';
 
-import ProfileImage          from './components/ProfileImage';
-import { blankProfile } from './utils';
+import SplashScreen from './screens/SplashScreen';
+import Onboarding   from './screens/Onboarding'
+import Home         from './screens/Home'
+import Profile      from './screens/Profile'
+
+import ProfileImage from './components/ProfileImage';
 
 /*****************************************************************************/
 
@@ -24,23 +27,39 @@ const Stack = createNativeStackNavigator();
 
 /*****************************************************************************/
 
-const reduceProfileState = (state, action) => {
-  const newState = {...state};
-  return action.data.reduce((a, v) => {
+const reduceProfileState = (state, action) => (
+  action.data.reduce((a, v) => {
     if (v[1] !== null) {
-      console.log('H: ', v);
+      console.log(v);
       a[v[0]] = v[1];
     }
     return a;
-  }, newState);
-};
+  }, {...state})
+);
+
+/*****************************************************************************/
+
+const screenOptions = () => ({
+  headerTitleAlign: 'center'
+, headerTitle: () => (
+    <Image
+      style={localStyles.logo}
+      source={require('./assets/Logo.png')}
+      accessible={true}
+      accessibilityLabel={'Little Lemon Logo'}
+    />
+  )
+});
 
 /*****************************************************************************/
 
 export default function App() {
   const [isLoading,             setIsLoading]             = useState(true);
   const [isOnboardingCompleted, setIsOnboardingCompleted] = useState(false);
-  const [profileState,          dispatchProfileChange]    = useReducer(reduceProfileState, blankProfile);
+  const [profileState,          dispatchProfileChange]    = useReducer(
+    reduceProfileState
+  , blankProfile
+  );
 
   useEffect(() => {
     (async () => {
@@ -71,13 +90,6 @@ export default function App() {
     return (<SplashScreen />);
   }
 
-  //headerRight={() => (
-  //    <ProfileImage
-  //      imageStyle={localStyles.profileImage}
-  //      imageTextStyle={localStyles.profileImageText}
-  //    />
-  //)}
-
   return (
     <ProfileContext.Provider
       value={{
@@ -87,34 +99,32 @@ export default function App() {
       }}
     >
       <NavigationContainer>
-        <Stack.Navigator>
-          {(isOnboardingCompleted)
-          ? <Stack.Screen
-              name="Profile"
-              component={Profile}
-              headerTitle={() => (
-                <Image
-                  style={localStyles.logo}
-                  source={require('./assets/Logo.png')}
-                  accessible={true}
-                  accessibilityLabel={'Little Lemon Logo'}
-                />
-              )}
+        {isOnboardingCompleted ? (
+          <Stack.Navigator
+            initialRouteName='Home'
+            screenOptions={screenOptions}
+          >
+            <Stack.Screen
+              name="Home"
+              component={Home}
+              options={({navigation}) => ({
+                headerRight: () => (
+                  <Pressable onPress={() => navigation.navigate('Profile')}>
+                    <ProfileImage
+                      imageStyle={localStyles.profileImage}
+                      imageTextStyle={localStyles.profileImageText}
+                    />
+                  </Pressable>
+                )
+              })}
             />
-          : <Stack.Screen
-              name='Onboarding'
-              component={Onboarding}
-              headerTitle={
-                <Image
-                  style={localStyles.logo}
-                  source={require('./assets/Logo.png')}
-                  accessible={true}
-                  accessibilityLabel={'Little Lemon Logo'}
-                />
-              }
-            />
-          }
-        </Stack.Navigator>
+            <Stack.Screen name="Profile" component={Profile} />
+          </Stack.Navigator>
+        ) : (
+          <Stack.Navigator screenOptions={screenOptions}>
+            <Stack.Screen name='Onboarding' component={Onboarding} />
+          </Stack.Navigator>
+        )}
       </NavigationContainer>
     </ProfileContext.Provider>
   );
@@ -124,16 +134,18 @@ export default function App() {
 
 const localStyles = StyleSheet.create({
   profileImage: {
-    width:    75
-  , height:   75
+    width:          65
+  , height:         65
+  , marginVertical: 5
   }
 , profileImageText: {
     fontSize: 24
   }
 , logo: {
-    width:      '60%'
-  , height:     100
-  , resizeMode: 'contain'
+    width:          250
+  , height:         65
+  , marginVertical: 5
+  , resizeMode:     'contain'
   }
 });
 
