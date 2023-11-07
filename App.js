@@ -30,7 +30,6 @@ const Stack = createNativeStackNavigator();
 const reduceProfileState = (state, action) => (
   action.data.reduce((a, v) => {
     if (v[1] !== null) {
-      console.log(v);
       a[v[0]] = v[1];
     }
     return a;
