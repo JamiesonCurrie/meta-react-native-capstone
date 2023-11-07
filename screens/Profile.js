@@ -1,8 +1,9 @@
 /*****************************************************************************/
 /*****************************************************************************/
 
-import { useContext, useEffect, useRef, useState } from "react";
-import { Text, View, TextInput, Pressable, StyleSheet, ScrollView} from "react-native";
+import { useContext, useEffect, useRef, useState }      from "react";
+import { ScrollView, View, Text, TextInput, Pressable } from "react-native";
+import { StyleSheet, Alert }                            from "react-native";
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -15,11 +16,10 @@ import { styles, themeColours } from '../styles/styles';
 import { ProfileContext }       from '../context/ProfileContext';
 
 import ProfileImage             from '../components/ProfileImage';
-import { Alert } from 'react-native';
 
 /*****************************************************************************/
 
-const Profile = () => {
+const Profile = ({navigation}) => {
 
   const {
     profileState
@@ -53,15 +53,16 @@ const Profile = () => {
   };
 
   const triggerClearStorage = async () => {
+    const box = Object.keys(profileRef.current);
+    box.push('IsOnboardingCompleted');
+    console.log(box);
     try {
-      await AsyncStorage.multiRemove(
-        Object.keys(blankProfile).push('IsOnboardingCompleted')
-      );
+      await AsyncStorage.multiRemove(box);
     }
     catch(e) {
       Alert.alert(
         'Storage Error!'
-      , 'There was an error clearing your storage. ' + JSON.stringify(e, ' ')
+      , 'There was an error clearing your storage. ' + e
       , [{text: 'OK'}]
       );
     }
@@ -95,7 +96,10 @@ const Profile = () => {
       Alert.alert(
         'Profile Saved'
       , 'Your profile has been updated successfully.'
-      , [{text: 'OK'}]
+      , [{
+          text: 'OK'
+        , onPress: () => navigation.navigate('Home')
+        }]
       );
     }
   };
@@ -165,6 +169,7 @@ const Profile = () => {
           style={styles.inputText}
           id={'profile_firstname'}
           placeholder={'Firstname'}
+          autoCapitalize='words'
           value={profileState['firstname']}
           onChangeText={(text) => handleChange('firstname', text)}
         />
@@ -176,6 +181,7 @@ const Profile = () => {
           style={styles.inputText}
           id={'profile_lastname'}
           placeholder={'Lastname'}
+          autoCapitalize='words'
           value={profileState['lastname']}
           onChangeText={(text) => handleChange('lastname', text)}
         />

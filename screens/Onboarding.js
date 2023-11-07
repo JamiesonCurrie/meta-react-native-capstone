@@ -1,5 +1,5 @@
 import { useEffect, useState, useContext }              from "react";
-import { Text, View, TextInput, Pressable, StyleSheet } from "react-native";
+import { Text, View, TextInput, Pressable, StyleSheet, Alert, Image } from "react-native";
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -26,9 +26,11 @@ const Onboarding = () => {
     , ['email',     profileState['email']    ]
     ];
 
+    console.log(entries.concat([['IsOnboardingCompleted', 'true']]));
+
     try {
       await AsyncStorage.multiSet(
-        entries.concat(['IsOnboardingCompleted', 'true'])
+        entries.concat([['IsOnboardingCompleted', 'true']])
       );
     }
     catch(e) {
@@ -52,24 +54,28 @@ const Onboarding = () => {
   }, [profileState['email']]);
 
   useEffect(() => {
-    setDisabled((!validEmail || !validFirstname));
+    const disabled = (!validEmail || !validFirstname) ? true : false;
+    setDisabled(disabled);
   }, [validFirstname, validEmail]);
 
   useEffect(() => {
-    setValidFirstname(true);
-    setValidEmail(true);
+    setValidFirstname(false);
+    setValidEmail(false);
     setDisabled(true);
   }, []);
 
   return (
     <View style={styles.container}>
-      <View style={localStyles.container}>
+      <View style={localStyles.top}>
         <Text style={[styles.leadText, localStyles.leadText]}>Let us get to know you</Text>
+      </View>
+      <View style={localStyles.bottom}>
         <Text style={styles.labelText}>First name</Text>
         <TextInput
           style={styles.inputText}
           id={'firstname'}
           placeholder='Your Name'
+          autoCapitalize='words'
           value={profileState['firstname']}
           onChangeText={(text) => dispatchProfileChange({ data: [['firstname', text]] })}
         />
@@ -103,8 +109,12 @@ const Onboarding = () => {
 /*****************************************************************************/
 
 const localStyles = StyleSheet.create({
-  container:  {
-    flex: 2
+  top:  {
+    flex: 1
+  , justifyContent: 'center'
+  }
+, bottom:  {
+    flex: 1
   , justifyContent: 'flex-end'
   }
 , leadText: {
