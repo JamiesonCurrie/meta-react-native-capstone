@@ -34,7 +34,7 @@ export const blankProfile = {
 , 'email_password_changes': true
 , 'email_specials':         true
 , 'email_newsletter':       true
-, 'profile_image':          null
+, 'profile_image':          ''
 };
 
 /*****************************************************************************/
