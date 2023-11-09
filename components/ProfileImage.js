@@ -12,7 +12,7 @@ import { ProfileContext } from '../context/ProfileContext';
 
 /*****************************************************************************/
 
-const ProfileImage = ({imageStyle, imageStyleText}) => {
+const ProfileImage = ({imageStyle, imageTextStyle}) => {
 
   const {profileState} = useContext(ProfileContext);
 
@@ -27,7 +27,7 @@ const ProfileImage = ({imageStyle, imageStyleText}) => {
         />
       : (profileState['firstname'] || profileState['lastname'])
         ? <View style={[imageStyle, localStyles.imageTextView]}>
-            <Text style={[imageStyleText, localStyles.imageText]}>
+            <Text style={[imageTextStyle, localStyles.imageText]}>
               {getInitials(profileState['firstname'], profileState['lastname'])}
             </Text>
           </View>
@@ -41,11 +41,11 @@ const ProfileImage = ({imageStyle, imageStyleText}) => {
 
 const localStyles = StyleSheet.create({
   image:  {
-    borderRadius:   50
+    borderRadius:   100
   , resizeMode:     'contain'
   }
 , imageTextView: {
-    backgroundColor: themeColours.p1
+    backgroundColor: themeColours.s1
   , borderRadius:   100
   , alignItems:     'center'
   , justifyContent: 'center'

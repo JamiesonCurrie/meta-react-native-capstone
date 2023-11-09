@@ -138,7 +138,7 @@ const localStyles = StyleSheet.create({
   , marginVertical: 5
   }
 , profileImageText: {
-    fontSize: 24
+    fontSize: 32
   }
 , logo: {
     width:          250

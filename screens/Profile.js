@@ -1,21 +1,23 @@
 /*****************************************************************************/
 /*****************************************************************************/
 
-import { useContext, useEffect, useRef, useState }      from "react";
-import { ScrollView, View, Text, TextInput, Pressable } from "react-native";
-import { StyleSheet, Alert }                            from "react-native";
+import { useContext, useEffect, useRef, useState }             from "react";
+import { ScrollView, View, Text, Pressable, StyleSheet, Alert} from "react-native";
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import * as ImagePicker from 'expo-image-picker';
-import CheckBox         from "expo-checkbox";
-
-import { blankProfile, validateEmail, validateName, validatePhoneNumber } from '../utils';
 
 import { styles, themeColours } from '../styles/styles';
 import { ProfileContext }       from '../context/ProfileContext';
+import {
+  blankProfile
+, validateEmail, validateName, validatePhoneNumber
+} from '../utils';
 
-import ProfileImage             from '../components/ProfileImage';
+import ProfileImage  from '../components/ProfileImage';
+import ProfileOption from '../components/ProfileOption';
+import ProfileField  from '../components/ProfileField';
 
 /*****************************************************************************/
 
@@ -28,9 +30,9 @@ const Profile = ({navigation}) => {
   } = useContext(ProfileContext);
 
   const [validFirstname,   setValidFirstname]   = useState(false);
-  const [validLastname,    setValidLastname]    = useState(false);
+  const [validLastname,    setValidLastname]    = useState(true);
   const [validEmail,       setValidEmail]       = useState(false);
-  const [validPhoneNumber, setValidPhoneNumber] = useState(false);
+  const [validPhoneNumber, setValidPhoneNumber] = useState(true);
 
   const [disabled,         setDisabled]         = useState(true);
   const [savedProfile,     setSavedProfile]     = useState(true);
@@ -41,10 +43,10 @@ const Profile = ({navigation}) => {
   const pickImage = async () => {
     // No permissions request is necessary for launching the image library
     let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.All,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
+      mediaTypes:    ImagePicker.MediaTypeOptions.All
+    , allowsEditing: true
+    , aspect:        [4, 3]
+    , quality:       1
     });
 
     if (!result.canceled) {
@@ -53,8 +55,9 @@ const Profile = ({navigation}) => {
   };
 
   const triggerClearStorage = async () => {
-    const box = Object.keys(profileRef.current);
-    box.push('IsOnboardingCompleted');
+    const box = ['IsOnboardingCompleted'].concat(
+      Object.keys(profileRef.current)
+    );
     console.log(box);
     try {
       await AsyncStorage.multiRemove(box);
@@ -112,17 +115,38 @@ const Profile = ({navigation}) => {
     dispatchProfileChange({ data: Object.entries(profileRef.current) });
   };
 
-  useEffect(() => setValidFirstname(validateName(profileState['firstname'])), [profileState['firstname']]);
-  useEffect(() => setValidLastname(validateName(profileState['lastname'])),   [profileState['lastname']]);
-  useEffect(() => setValidEmail(validateEmail(profileState['email'])),        [profileState['email']]);
-  useEffect(() =>
-    setValidPhoneNumber(validatePhoneNumber(profileState['phone_number']))
-  , [profileState['phone_number']]);
+  //required fields
+  useEffect(() => {
+    setValidFirstname(validateName(profileState['firstname']));
+  }, [profileState['firstname']]);
 
+  useEffect(() => {
+    setValidEmail(validateEmail(profileState['email']));
+  }, [profileState['email']]);
+
+  //not required
+  useEffect(() => {
+    const valid = (profileState['lastname'] === '')
+    ? true
+    : validateName(profileState['lastname'])
+    ;
+    setValidLastname(valid);
+  }, [profileState['lastname']]);
+
+  useEffect(() => {
+    const valid = (profileState['phone_number'] === '')
+    ? true
+    : validatePhoneNumber(profileState['phone_number'])
+    ;
+    setValidPhoneNumber(valid);
+  }, [profileState['phone_number']]);
+
+  //disable buttons
   useEffect(() => {
     setDisabled(!(validEmail && validFirstname && validLastname && validPhoneNumber))
   }, [validFirstname, validLastname, validEmail, validPhoneNumber]);
 
+  //check if profile fields have changed
   useEffect(() => {
     const filteredKeys = Object.keys(profileState).filter((v) =>
       (profileState[v] !== profileRef.current[v])
@@ -130,15 +154,23 @@ const Profile = ({navigation}) => {
     setSavedProfile((filteredKeys.length === 0));
   }, [profileState]);
 
+  //check if the save button is enabled
   useEffect(() => {
     setAllowSave((!savedProfile && !disabled))
   }, [savedProfile, disabled]);
 
   useEffect(() => {
+    //required fields
     setValidFirstname(validateName(profileState['firstname']));
-    setValidLastname(validateName(profileState['lastname']));
     setValidEmail(validateEmail(profileState['email']));
-    setValidPhoneNumber(validatePhoneNumber(profileState['phone_number']));
+
+    //not required
+    if (profileState['lastname'] !== '') {
+      setValidLastname(validateName(profileState['lastname']));
+    }
+    if (profileState['phone_number'] !== '') {
+      setValidPhoneNumber(validatePhoneNumber(profileState['phone_number']));
+    }
   }, []);
 
   return (
@@ -149,7 +181,7 @@ const Profile = ({navigation}) => {
         <View style={localStyles.buttonRow}>
           <ProfileImage
             imageStyle={localStyles.profileImage}
-            imageStyleText={localStyles.profileImageText}
+            imageTextStyle={localStyles.profileImageText}
           />
           <Pressable
             style={[styles.button, styles.buttonEnabled]}
@@ -164,87 +196,83 @@ const Profile = ({navigation}) => {
             <Text style={styles.buttonText}>Remove</Text>
           </Pressable>
         </View>
-        <Text style={styles.labelText}>First name</Text>
-        <TextInput
-          style={styles.inputText}
-          id={'profile_firstname'}
-          placeholder={'Firstname'}
-          autoCapitalize='words'
-          value={profileState['firstname']}
-          onChangeText={(text) => handleChange('firstname', text)}
+        <ProfileField
+          valid={validFirstname}
+          text={'First Name'}
+          warningText={'Firstname is required and must be A-z'}
+          textInputProps={{
+            id:             'firstname'
+          , placeholder:    'First name'
+          , value:          profileState['firstname']
+          , onChangeText:   (text) => handleChange('firstname', text)
+          , autoCapitalize: 'words'
+          }}
         />
-        {!validFirstname &&
-          <Text style={styles.warningText}>Firstname is required and must be A-z</Text>
-        }
-        <Text style={styles.labelText}>Last name</Text>
-        <TextInput
-          style={styles.inputText}
-          id={'profile_lastname'}
-          placeholder={'Lastname'}
-          autoCapitalize='words'
-          value={profileState['lastname']}
-          onChangeText={(text) => handleChange('lastname', text)}
+        <ProfileField
+          valid={validLastname}
+          text={'Last Name'}
+          warningText={'Lastname must be A-z'}
+          textInputProps={{
+            id:             'lastname'
+          , placeholder:    'Last name'
+          , value:          profileState['lastname']
+          , onChangeText:   (text) => handleChange('lastname', text)
+          , autoCapitalize: 'words'
+          }}
         />
-        {!validLastname &&
-          <Text style={styles.warningText}>Lastname is required and must be A-z</Text>
-        }
-        <Text style={styles.labelText}>Email</Text>
-        <TextInput
-          style={styles.inputText}
-          id={'profile_email'}
-          placeholder='email@address.com'
-          value={profileState['email']}
-          onChangeText={(text) => handleChange('email', text)}
-          keyboardType='email-address'
+        <ProfileField
+          valid={validEmail}
+          text={'Email'}
+          warningText={'must be a valid email address'}
+          textInputProps={{
+            id:           'email'
+          , placeholder:  'email@123.com'
+          , value:        profileState['email']
+          , onChangeText: (text) => handleChange('email', text)
+          , keyboardType: 'email-address'
+          }}
         />
-        {!validEmail &&
-          <Text style={styles.warningText}>must be a valid email address</Text>
-        }
-        <Text style={styles.labelText}>Phone Number</Text>
-        <TextInput
-          style={styles.inputText}
-          id={'profile_phone_number'}
-          placeholder='9991234567'
-          value={profileState['phone_number']}
-          onChangeText={(text) => handleChange('phone_number', text)}
-          keyboardType='number-pad'
+        <ProfileField
+          valid={validPhoneNumber}
+          text={'Phone Number'}
+          warningText={'must be a valid phone number: 789 555 1234'}
+          textInputProps={{
+            id:           'phone_number'
+          , placeholder:  '7895551234'
+          , value:        profileState['phone_number']
+          , onChangeText: (text) => handleChange('phone_number', text)
+          , keyboardType: 'number-pad'
+          }}
         />
-        {!validPhoneNumber &&
-          <Text style={styles.warningText}>must be a valid phone number: 17895551234</Text>
-        }
         <Text style={styles.leadText}>Email Notifications</Text>
-        <View style={localStyles.checkBoxRow}>
-          <CheckBox
-            style={localStyles.checkbox}
-            value={profileState['email_orders']}
-            onValueChange={(checked) => handleChange('email_orders', checked)}
-          />
-          <Text style={localStyles.checkboxText}>Order statuses</Text>
-        </View>
-        <View style={localStyles.checkBoxRow}>
-          <CheckBox
-            style={localStyles.checkbox}
-            value={profileState['email_password_changes']}
-            onValueChange={(checked) => handleChange('email_password_changes', checked)}
-          />
-          <Text style={localStyles.checkboxText}>Password changes</Text>
-        </View>
-        <View style={localStyles.checkBoxRow}>
-          <CheckBox
-            style={localStyles.checkbox}
-            value={profileState['email_specials']}
-            onValueChange={(checked) => handleChange('email_specials', checked)}
-          />
-          <Text style={localStyles.checkboxText}>Special Offers</Text>
-        </View>
-        <View style={localStyles.checkBoxRow}>
-          <CheckBox
-            style={localStyles.checkbox}
-            value={profileState['email_newsletter']}
-            onValueChange={(checked) => handleChange('email_newsletter', checked)}
-          />
-          <Text style={localStyles.checkboxText}>Newsletter</Text>
-        </View>
+        <ProfileOption
+          text={'Order status'}
+          checkboxProps={{
+            value: profileState['email_orders']
+          , onValueChange: (checked) => handleChange('email_orders', checked)
+          }}
+        />
+        <ProfileOption
+          text={'Password changes'}
+          checkboxProps={{
+            value: profileState['email_password_changes']
+          , onValueChange: (checked) => handleChange('email_password_changes', checked)
+          }}
+        />
+        <ProfileOption
+          text={'Special Offers'}
+          checkboxProps={{
+            value: profileState['email_specials']
+          , onValueChange: (checked) => handleChange('email_specials', checked)
+          }}
+        />
+        <ProfileOption
+          text={'Newsletter'}
+          checkboxProps={{
+            value: profileState['email_newsletter']
+          , onValueChange: (checked) => handleChange('email_newsletter', checked)
+          }}
+        />
         <Pressable
           style={[styles.button, localStyles.logoutButton]}
           onPress={triggerClearStorage}
@@ -280,20 +308,6 @@ const localStyles = StyleSheet.create({
     flexDirection:  'row'
   , justifyContent: 'space-around'
   , alignItems:     'center'
-  }
-, checkBoxRow: {
-    flexDirection:  'row'
-  , justifyContent: 'flex-start'
-  , alignItems:     'center'
-  , marginVertical: 8
-  }
-, checkboxText: {
-    textAlignVertical: 'center'
-  , fontSize:       18
-  , color:         themeColours.p1
-  }
-, checkbox: {
-    marginHorizontal: 20
   }
 , profileImage: {
     width:      130

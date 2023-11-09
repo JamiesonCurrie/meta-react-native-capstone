@@ -12,7 +12,7 @@ export const validateName = (name) => (
 );
 
 export const validatePhoneNumber = (phoneNumber) => (
-  phoneNumber.match(/^1[0-9]{10}$/)
+  phoneNumber.match(/^[1-9][0-9]{9}$/)
 );
 
 /*****************************************************************************/
