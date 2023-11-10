@@ -58,7 +58,6 @@ const Profile = ({navigation}) => {
     const box = ['IsOnboardingCompleted'].concat(
       Object.keys(profileRef.current)
     );
-    console.log(box);
     try {
       await AsyncStorage.multiRemove(box);
     }
@@ -81,9 +80,7 @@ const Profile = ({navigation}) => {
     try {
       await AsyncStorage.multiSet(entries.map((v) => {
         const v1 = v[1];
-        if (typeof(v1) !== 'string') {
-          v[1] = JSON.stringify(v1);
-        }
+        v[1] = JSON.stringify(v1);
         return v;
       }));
     }

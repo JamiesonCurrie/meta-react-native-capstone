@@ -20,6 +20,7 @@ import Home         from './screens/Home'
 import Profile      from './screens/Profile'
 
 import ProfileImage from './components/ProfileImage';
+import { createTable, deleteTable } from './database';
 
 /*****************************************************************************/
 
@@ -63,7 +64,8 @@ export default function App() {
   useEffect(() => {
     (async () => {
       try {
-        const iobc = await AsyncStorage.getItem('IsOnboardingCompleted');
+        let iobc = await AsyncStorage.getItem('IsOnboardingCompleted');
+        iobc = JSON.parse(iobc);
         if (iobc && (typeof(iobc) === 'boolean')) {
           setIsOnboardingCompleted(iobc);
         }
@@ -78,6 +80,14 @@ export default function App() {
       }
       catch(e) {
         // read error
+        console.log('APP ERROR: ', e);
+      }
+      try {
+        //await deleteTable();
+        await createTable();
+      } catch (e) {
+        // Handle error
+        Alert.alert(e.message);
       }
       finally {
         setIsLoading(false);
@@ -135,7 +145,7 @@ const localStyles = StyleSheet.create({
   profileImage: {
     width:          65
   , height:         65
-  , marginVertical: 5
+  , marginVertical: 12
   }
 , profileImageText: {
     fontSize: 32

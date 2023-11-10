@@ -1,32 +1,26 @@
 /*****************************************************************************/
 /*****************************************************************************/
 
-import { StyleSheet, ScrollView } from "react-native";
+import { View } from 'react-native';
 
-import Menu  from '../components/Menu';
-import About from '../components/About';
-
-/*****************************************************************************/
-
-const Home = () => {
-  return (
-    <ScrollView style={localStyles.container}>
-      <About />
-      <Menu />
-    </ScrollView>
-  );
-};
+import { themeColours } from '../styles/styles';
 
 /*****************************************************************************/
 
-const localStyles = StyleSheet.create({
-  container:  {
-    flex:    1
-  }
-});
+const ItemSeparator = () => (
+  <View
+    style={{
+      height:          1
+    , width:           "90%"
+    , backgroundColor: themeColours.s4
+    , alignSelf:       'center'
+    }}
+  />
+);
+
 /*****************************************************************************/
 
-export default Home;
+export default ItemSeparator;
 
 /*****************************************************************************/
 /*****************************************************************************/

@@ -1,5 +1,5 @@
 import { useEffect, useState, useContext } from "react";
-import { Text, View, TextInput, Pressable, StyleSheet, Alert } from "react-native";
+import { Text, View, Pressable, StyleSheet, Alert } from "react-native";
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -24,13 +24,13 @@ const Onboarding = () => {
 
   const onNext = async () => {
     const entries = [
-      ['firstname', profileState['firstname']]
-    , ['email',     profileState['email']    ]
+      ['firstname', JSON.stringify(profileState['firstname'])]
+    , ['email',     JSON.stringify(profileState['email'])    ]
     ];
 
     try {
       await AsyncStorage.multiSet(
-        entries.concat([['IsOnboardingCompleted', 'true']])
+        entries.concat([['IsOnboardingCompleted', JSON.stringify(true)]])
       );
     }
     catch(e) {
@@ -57,12 +57,6 @@ const Onboarding = () => {
     const disabled = (!validEmail || !validFirstname) ? true : false;
     setDisabled(disabled);
   }, [validFirstname, validEmail]);
-
-  //useEffect(() => {
-  //  setValidFirstname(false);
-  //  setValidEmail(false);
-  //  setDisabled(true);
-  //}, []);
 
   return (
     <View style={styles.container}>
@@ -109,11 +103,11 @@ const Onboarding = () => {
 
 const localStyles = StyleSheet.create({
   top:  {
-    flex: 1
+    flex:           1
   , justifyContent: 'space-around'
   }
 , bottom:  {
-    flex: 1
+    flex:           1
   , justifyContent: 'flex-end'
   }
 , leadText: {
